@@ -1,0 +1,438 @@
+%
+% File acl2019.tex
+%
+%% Based on the style files for ACL 2018, NAACL 2018/19, which were
+%% Based on the style files for ACL-2015, with some improvements
+%%  taken from the NAACL-2016 style
+%% Based on the style files for ACL-2014, which were, in turn,
+%% based on ACL-2013, ACL-2012, ACL-2011, ACL-2010, ACL-IJCNLP-2009,
+%% EACL-2009, IJCNLP-2008...
+%% Based on the style files for EACL 2006 by 
+%%e.agirre@ehu.es or Sergi.Balari@uab.es
+%% and that of ACL 08 by Joakim Nivre and Noah Smith
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[hyperref]{acl2019}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{csquotes}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{tabu}
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+
+
+\usepackage{url}
+
+%\aclfinalcopy % Uncomment this line for the final submission
+%\def\aclpaperid{***} %  Enter the acl Paper ID here
+
+%\setlength\titlebox{5cm}
+% You can expand the titlebox if you need extra space
+% to show all the authors. Please do not make the titlebox
+% smaller than 5cm (the original size); we will check this
+% in the camera-ready version and ask you to change it back.
+
+\newcommand\BibTeX{B\textsc{ib}\TeX}
+
+\title{OpenStreetSet: A New Task and Data-Set for Interpreting Realistic Navigation Instructions in Colloquial Language Based on an Urban Map}
+
+\author{Tzuf Paz-Argaman \\
+  The Open University\\
+  Israel \\
+  {\tt tzufar@gmail.com} \\\And
+  Reut Tsarfaty \\
+  The Open University\\
+  Israel \\
+  {\tt reut.tsarfaty@gmail.com} \\}
+
+\date{}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+
+  Following navigation instructions in natural language requires a composition of language, action, and domain knowledge. Previous studies address the problem of interpreting navigation instructions based on a small artificial domain, with several fixed entities shared by all worlds. In this work, we introduce {\em realistic urban navigation} (RUN), the task of interpreting navigation instructions that are given in colloquial language and grounded in a dense urban map. To address RUN, we designed and collected a new data-set, OpenStreetSet (OSS), in which we align instructions to actions and to map coordinates.  Using Amazon Mechanical Turk, we collected navigation stories over three  urban maps with rich layers, aligning 389 navigation stories (2515  instructions) with their corresponding routes. We further present an architecture for the task which augments a standard sequence-to-sequence architecture with a world-state, attention over words and worlds, and an entity abstraction layer which allows us to address navigation in unfamiliar locations. Our empirical results show that world-state as well as entity abstraction lead to superior results compared to standard sequence-to-sequence with attention. Our new data-set, task and architecture provide a basis for further investigation of interpreting navigation instructions in colloquial language.  
+\end{abstract}
+
+
+\section{Introduction}
+
+According to the \href{http://www.upu.int/fileadmin/documentsFiles/activities/addressingAssistance/brochureAddressingTheWorldEn.pdf}{Universal Postal Union (UPU)}, the majority of people in many developing countries do not have a set address. With very few alternatives, they often rely on natural language (NL) description of the path to their house: ``Turn right after the church and it will be the first house after the school". What if we could automate the interpretation of such directions, allowing robots or autonomous vehicles to automatically navigate based on free NL descriptions of such routes?  \par
+
+
+The task of interpreting NL navigation instructions and performing these actions in the real world (or a representation thereof) presents several challenges. Firstly, following navigation instructions involves interleaving different  signals,  at the very least the linguistic utterance and the representation of the world. For example, \enquote {turn after the Cherry Tavern} refers to a specific object in the  world that needs to be located in order to execute the instruction. %Subsequently, when following navigation instructions, one needs to take into consideration the physical restrictions and adjust the route accordingly. 
+Secondly, the verbal description may be ambiguous and contain fuzzy terms, as in: \enquote {it is {\em  not far} from the supermarket}. How close is {\em not far}? Thirdly,   instructions are often incomplete. Rarely do instructions cover all the moves needed to complete the navigation task, and  additional implicit actions need to be inferred. For example, in ``Turn right after the church'' it is assumed that the hearer faces a certain direction, while in actuality it may require turning around to find this direction. Lastly,
+navigation tasks are vulnerable to error propagation. Each action relies on the correct completion of all previous actions, otherwise the navigation task cannot be successfully completed.  \par
+
+
+The main data-sets  for studying  NL navigation  thus far (SAIL \cite{macmahon2006walk} and HCRC \cite{anderson1991hcrc}) present a  simplistic, artificial depiction of the world, with a small fixed set of entities that are known to the navigator in advance. Such representations bypass the great complexity of real urban maps, where an abundance of previously  unseen entities are observed at test time. 
+In this work we define  {\em realistic urban navigation} (RUN), the task of following an exact  intended route described in natural language based on a real urban map. In  RUN we acknowledge the complexity presented by real urban environments, and in particular the  fact that following a verbal  navigation story  is a task that is most relevant specifically in unfamiliar locations -- that is, where {\em none} of the entities are known in advance.
+
+To address  RUN, we created {\em OpenStreetSet} (OSS), a novel data-set based on large real urban maps and richer information layers than ever before. OSS contains hundreds of references to  entities, which need to be connected (that is,  {\em grounded}) to physical entities in the actual world.  %and the large-scale maps %it contains raise the challenge of connecting between language and the physical world (\textit{grounding}), using large amount of data. 
+OSS also contains worlds and routes much larger than in previous data-sets, making the   task significantly more vulnerable to error propagation than in previous NL navigation studies. 
+ 
+We present an effective  architecture for the RUN task which augments a standard encoder-decoder model with an entity abstraction layer, attention over words and worlds, and a constantly updating world-state.
+Our experiments show that this architecture is indeed better-equipped to treat the \textit{grounding} challenge in realistic urban settings than standard sequence-to-sequence architectures. We further show the role of beam search in adding an exploration element, which is essential for inferring implicit actions, and we discuss solutions for the challenge of sorting a beam that contains routes with varied lengths.
+
+Our contribution is thus threefold: (i) we present a new task, RUN, for grounded NL understanding, (ii) we deliver a richly annotated data-set aligning navigation stories to routes, to address RUN,  and (iii) we propose key architectural components, for a neural-network architecture to be able to cope well with such grounded NL navigation tasks.
+Given our new task,  benchmark,  architecture and evaluation procedure, we hope to encourage further investigations into the topic of interpreting NL instructions that refer to rich, complex and previously unseen domains.  
+
+The remainder of this paper is organized as follows. In Section \ref{background} we survey previous endeavors to study NL navigation and discuss the need for a new, more realistic, data-set and task. In Sections \ref{task} and \ref{data}  we describe the new task and data-set respectively. In \ref{models} we present our modeling assumptions and the   specific models we experimented with, followed by our  results and analysis in Section \ref{expirement}. In Section \ref{conclusion} we conclude.
+
+
+\section{Interpreting  Navigation Instructions in NL: A Brief   Overview}
+\label{background}
+
+The task of interpreting navigation instructions is a specific case of {\em grounded semantic parsing}. Semantic parsing is the process of mapping natural language (NL) utterances to a complete formal representation of their  meaning \cite{liang15,abend2017state}.
+Since NL texts often refer to entities in the physical world,  recovering the complete meaning of an utterance  might require identifying the actual  entities   that the text refers to. This process, of connecting linguistic terms in text to physical objects in the world, is called \textit{grounding}. 
+The process of grounding in NL navigation  instructions requires a representation of the world that the utterance refers to, and this representation   may be obtained from different sources. In particular, it can be based on vision \citep{anderson2017vision,blukis2018following,wang2018look}, or it can be based on a  map.  In this work we assume the latter.
+
+The first work on following navigation instructions given in NL based on a map was the HCRC Map Task, collected by \citet{anderson1991hcrc} and later annotated by \citet{levit2007interpretation}. The HCRC   corpus  contains dialogues between an instruction giver and an instruction follower. The instruction follower has a map with a few landmarks drawn on it and her goal is to follow correctly the instructions given. Working on the HCRC corpus, \citet{vogel2010learning} defined the task of \enquote*{jumping} between landmarks, where the movement in between is unimportant. Each map contains only a handful of entities, which  significantly simplifies  the task of following an exact path.  
+
+
+Most research on NL navigation in NLP \citep{macmahon2006walk,chen2011learning,kim2012unsupervised,kim2013adapting,artzi2013weakly,artzi2014learning,mei2015listen,fried2017unified,andreas2015alignment}  focused on the SAIL task as defined by \citet{chen2011learning} with the data-set collected by \citet{macmahon2006walk}. The task defined by \citet{chen2011learning} evaluates only the final destination, ignoring the route chosen. SAIL was collected using  six instructors, which made the amount of words in the dictionary small, and the structures of the instructions given by a single instructor  repetitive. The limited vocabulary and  repeating structures made the task of modeling the instructions fairly simple. Most importantly, the task they present includes navigating on a small map containing several fixed elements in an artificial shared domain that is known in advance.  
+
+More recently,  a new data-set called the \enquote*{Talk the Walk} (TTW) has been published by \citet{de2018talk}. Using MTurk they collected data over five urban environments in New York City. The data-set consists of a correspondence between a Guide and a Tourist. The Guide's goal is to declare when the Tourist reaches the target location. \citet{de2018talk} focused on the localization task --- predicting the tourist's location on the map. The evaluation is done on the last position only, allowing the algorithm to take random walks until the localization model predicts the Tourist is at the target location. 
+This is mostly possible because the world the Tourist is traveling through is smaller than what a realistic urban navigation task would require. Furthermore, \citet{de2018talk} assume a \enquote{perfect perception} mode, that is, at each step the agent takes, the model receives the set of  landmarks coinciding with the entities on the Guide's map (only nine types of entities). Thus, the model does not have to address the thorny issue of grounding previously unseen entities.
+ 
+
+
+All in all, previous NL navigation tasks differ from  the {realistic  navigation task} we target here in various aspects: (i) they contain small-scale worlds, providing few short routes; (ii) they present only a dearth of entities,  non-representative of  realistic maps; (iii) almost all the entities are seen prior to testing, and  (iv) previous tasks focused on correctly reaching the final destination, while ignoring the intended route.
+%
+%--- even can (in certain situations such as tourist-guide task) be important. \par
+%
+Here  we define   the {\em realistic urban navigation} (RUN) task, that effectively addresses the four  aspects above.
+
+
+\section{The Realistic Urban Navigation  Task}
+\label{task}
+
+In this work, we address the problem of navigating through urban environments based on a sequence of instructions given  in colloquial language based on a  dense  urban map. 
+
+
+First, we lay down two assumptions: (1) a  \enquote*{navigation story}  (in short, story) consists of a sequence of \enquote*{navigation instructions} (in short, instructions). Each instruction is a single sentence instructing the movement from a given starting point to a new endpoint.\footnote{The direction of the starting point is unknown unless indicated in former instructions in the story.}
+Following the instructions one by one will lead the agent to the intended end point;\footnote{It is not always the case with navigation stories. However, while collecting the data-set we found that only around 6\% didn't work according to this assumption. Thus, we exempted ourselves from dealing with these cases.} (2) we only consider routes where the movement proceeds on streets and roads that are named on the map.
+
+
+
+Now, the {\em input} to the RUN task is as follows: 
+(i)
+    a map divided into grids with rich details,
+(ii)
+    an explicit starting point, and
+(iii)
+    a navigation story.
+The map provides the system with partial prior knowledge of geometry and landmarks relevant to the route described in the stories. 
+The {\em output} of RUN is the entire route,  all the coordinates up to and including its end point, pinned on the map.
+
+
+
+\begin{figure}[t]
+\centering
+\scalebox{0.49}{
+\includegraphics[width=\textwidth]{images/ImageCurved.png}}
+\caption 
+        {An example of a route pinned by a MTurk worker. The workers can only pin the points on the path. The workers first give a free description of the path. Then they are shown sentence by sentence and are asked to pin down the route.} 
+        
+\label{fig:user_interface}
+\end{figure}
+
+ \begin{table*}[h]
+ 
+     \centering
+     \scalebox{0.85}{
+     \begin{tabular}{c|ccccc}
+     &   Entities &  Unique Entities & World-Size (Grids)  & Route Length \\ \hline
+       HCRC     & 11.93  & 8.125  &  11.93 (movement between entitles) & 9.75  \\ 
+        SAIL  & 22   & 0   & 33.33 & 5.34 \\
+        TTW &  62.6                          & 0 (with perfect perception)         & 100 (25 walkable) & 2.5 \\
+         OSS  & 932                           & 365                                                                             & 5281 (1059.6 walkable) & 78.89  
+     \end{tabular}
+     }
+     \caption{Quantitative Comparison of the OSS to the HCRC, SAIL, and TTW Data-Sets}
+     \label{table:statistic_maps}
+     
+ \end{table*}
+ 
+ 
+ 
+\section{The OpenStreetSet Data-set}
+\label{data}
+
+In order to address the RUN challenge, we designed and collected a novel data-set that we call  OpenStreetSet (OSS), which is based on \href{http://www.openstreetmap.org}{OpenStreetMap (OSM)}, a free, editable map of the whole world that was built by volunteers, with millions of users constantly adding informative tags to the map.
+
+The OSS data-set aligns navigation instructions to their corresponding  routes, and to the coordinates of these route on the OSM map. OSS consists of instructions  that are based on three different areas, all in urban, dense parts of Manhattan. 
+It contains 389 navigation stories, which is equal to a total of 2515 navigation instructions paired with their routes, marked as physical coordinates on a detailed map. Each story is given by a different instructor, which makes the style and language of the instructions vary.
+
+OSS includes, on top of the free-form route instructions and their corresponding list of points constituting the route path,  a list of actions that follows the route path using the execution-system we built for this purpose. 
+
+All maps contain an abundance of entities.
+Each entity is complex and can contain four labels: name, type, is\_building=y/n, and house number. An entity can spread over several grids.\footnote{For more details on the OSS map construction see the supplementary  material.} 
+As the maps do not overlap, very few entities (if at all) are shared among them. 
+
+We collected OSS  using
+\href{https://www.mturk.com/}{Amazon Mechanical Turk (MTurk)}.
+We allowed only native English speakers to perform our task. 
+We asked each MTurk worker to describe a route. After having described the complete route, the worker was instructed to pin the route on the map, showing them, sentence after sentence, the route they described. A worker was limited to named  streets only, that is, they could pin a route on street paths that were named on the map (see Figure \ref{fig:user_interface}). Furthermore, on every turn the worker had to mark an explicit point on the map, which marked the turn before the worker started the next move forward.
+
+
+
+
+\begin{figure*}[t]
+\centering
+\scalebox{1}{
+\scalebox{0.8}{
+\includegraphics[width=\textwidth]{images/model_ablation.png}}
+}
+ \caption{Our Model, Conditioned Generation with Attention over Words and World-State, Entity Abstraction Layer and an Execution System (CGAEW). The yellow parts presents a standard Encoder-Decoder with attention. The components added above a standard CGA are labeled with the model they belong to.}
+\label{fig:model}
+\end{figure*}
+
+
+We then asked a disjoint set of workers (testers) to verify the routes by displaying the starting point of the route and the instructions sentence by sentence. The tester had to pin the final point of the sentence. Each route was tested by three different workers. Testing the routes allowed us to find incorrect routes (stories that don't match a path) and discard them, and they also   provided us with an estimate of  the human performance on the  task.  %We discuss human performance when we present our experimental results in Section 6.
+
+After collecting the data of the map, we divided it into grids with $10^{-4}$ degree spacing (in WGS84 geodetic datum) in both latitude and longitude. Each grid contains the labels of the entity it displays on the map. Entities could be restaurants, traffic-lights and so on. The grid also contains the walkable streets which could be curved (see e.g. in Figure \ref{fig:user_interface}). Each walkable street is composed of an ordered list of grids, including a starting grid and an end grid. When an agent is on a specific street she can face one of the two ends of the street. 
+
+
+
+ Table \ref{table:statistic_maps} displays a quantitative comparison of the OSS to previous NL navigation data-sets.  
+ The table underscores some key features of OSS, relative to previous data-sets.
+ OSS contains many more entities that are unique, thus appearing for the first time during testing; the size of the map is on a different scale than previous tasks, thus presenting the challenge of capturing a detailed representation of the world which will support the grounding process; the number of grids moved is accordingly much larger than in previous data-sets, hence increasing the vulnerability to error propagation.
+
+
+
+
+\section{Models for RUNning}
+\label{models}
+
+
+
+We model RUN as a sequence-to-sequence learning problem, where the input consists of an utterance, a map, and a starting point, and the output is a sequence of actions that an execution-system can execute.   We define three types of actions executable by our execution-system:
+\enquote*{TURN},\enquote*{WALK},\enquote*{END}.%\footnote{OSS has a variation that contains two more types of actions: \enquote*{FACE} is a change of direction to face a specific street and end of street; \enquote*{VERIFY} gives verification to the current direction when it is explicitly mentioned in the instructions.   For  example,  \enquote{turn right on to 8th Avenue}. However, we have been unsuccessful in benefiting from \enquote{FACE} and \enquote{VERIFY}. We leave them for future research.}.
+
+\enquote*{TURN} is one of the following: right-turn, left-turn, turn-behind. The turning movement is not necessarily an exact 90-degree turn; the execution system looks for the closest turn option. 
+\enquote*{WALK} is a change of position in the direction we are facing (beginning of the street and end of the street). The streets can be curved, thus the \enquote{WALK} action is relative to the street and end of the street that the agent is on. Each street is an ordered-list of grids, so an action of walking two steps is in fact two actions of \enquote*{WALK}, each of them advancing the agent one grid in the  street the agent is on, in the direction of the street she is facing.
+The \enquote*{END} action is given at the end of each route.
+ 
+Consider for example, the instruction: \enquote {Turn right on 9th Avenue and walk until the first intersection}.
+Our corresponding sequence of actions would be in this case:
+\enquote{TURN(RIGHT); WALK; WALK; WALK; END}. \enquote*{TURN(RIGHT)} changes the direction the agent is facing, 
+in a clockwise direction, to the closest street found. \enquote*{WALK} moves the agent one grid forwards in the list of ordered-grids defined for \enquote{9th Avenue}. \enquote*{END} indicates that there is nothing more to be done in this instruction.  
+
+
+\subsection{Conditioned Generation with Attention (CGA)}
+Following the work of \citet{mei2015listen} on the SAIL data-set, and inspired by \citet{xu2015show}, our basic model for RUN is a sequence-to-sequence model based on a conditioned generation (Encoder-Decoder) architecture with attention. It consists of four main components: Encoder, Decoder, Attention and Execution-System.
+
+The Encoder   takes the sequence of words that assembles a single instruction and encodes it as a vector using a Bidirectional Recurrent Neural Network which uses a Long Short-Term Memory architecture (LSTM) \citep {graves2005framewise}.  
+The Decoder is in charge of interpreting the encoded data,   producing a sequence of actions which the execution-system can perform. 
+%
+The Attention mechanism considers the encoded words and their order and  provides weights on them for  each of the decoder steps ---  allowing the decoder to focus on different parts of the instruction which are relevant to generating the  relevant action at that particular point.
+%
+The Execution-System executes each type of   action (as defined above)  separately, to produce the next position. 
+
+While this architecture worked quite well on SAIL \cite{mei2015listen}, this model has one inherent deficiency with respect to the RUN challenge. The model will  encounter many singleton words during training, and a lot of previously unseen words at test time. This is because  OSS instructions  contain  references to entities on the map, and we always test the model on a previously unseen map. How could such sentences be interpreted?
+
+
+\subsection{Conditioned Generation with Attention and Entity Abstraction (CGAE)}
+
+
+To solve the challenge of interpreting  instructions with lots of singleton mentions, we first propose to conceptually separate the  \enquote*{map language}, which includes the references and terms that are specific to a certain map, and to the specific position of the agent is at,
+from the \enquote*{navigation language} %(e.g., \enquote*{turn right}, 
+which is the more abstract and  structured syntax and semantics of describing routes, and which can be transferred from one location to another. In the simple CGA model,  the \enquote*{map language} obscures the \enquote*{navigation language}, which undermines generalization and may severely affect the accuracy of the interpretation. 
+
+To address this, and specifically to assist dealing with out-of-vocabulary words that refer to previously unseen entities, we added an {\em entity extraction and abstraction} layer to the model prior to the Encoder, one that turns the \enquote*{map language}, that is, all the map-entities in the instruction, into variables. This neutralizes the \enquote*{map language} leaving us with a more abstract and structured  \enquote*{navigation language} to learn and interpret.
+
+
+The {\em entity extraction and abstraction} layer in practice pre-processes the sentence, extracting entities shown on the map, and replacing each entity span with a single variable according to the type of entity. Variables are numbered based on order of occurrence within the instruction in which they appear.\footnote{The numbering resets after every utterance, so in the end our model is left with a handful of variable entities only.}  E.g., \enquote{Walk from Macy's to 7th street} turns into \enquote{Walk from X1 to Y1}. The entity-extraction method is computed using fuzzy-search.
+
+
+
+ \begin{figure*}[ht]
+
+  \center
+\scalebox{0.8}{
+            \includegraphics[width=1 \textwidth]{images/world-state/world-state.png}}
+         
+        \caption
+        {An example of a {\em world-state representation} during navigation. The agent is denoted by a \enquote*{star} symbol. The first part of the world-state is the current state (\enquote*{current BOW position}) and the second is the direction ahead (\enquote*{forward BOW position}). When the agent is in \enquote*{Cherry Tavern} (swapped for \enquote*{X1}) the current position representation indicates it by a \enquote*{1} in the first bit. When the agent reaches her final destination - \enquote*{Mother of Pearl} (swapped for \enquote*{X2}), it is represented in the current position representation by a \enquote*{1} in the second bit.} 
+        \label{fig:world_state}
+    \end{figure*}
+    
+
+\subsection{Conditioned Generation with Attention and Entity Abstraction and World-State Execution (CGAEW)} 
+
+The CGAE model produces effectively  a more compact vocabulary, that is easier to learn,  but remains with no knowledge of the physical world, and therefore cannot ground the instructions.
+To address the grounding part of RUN, we added a {\em world-state} representation  to the architecture. 
+
+The {\em world-state} captures the state of the world relative to the current position of the agent.
+In particular, the world-state processor produces the world-state using the mapping of 
+variables to entities mentioned in the instruction. The world-state representation  %consists of  a BOW per type of entity, considering the entities in the current position and in the path ahead. 
+consists of a vector (BOW) representation of entities in the current position, and another  vector (BOW) for the entities in the path ahead. 
+When the agent's position is near an entity that appears in the instruction, then the world-state represents it in the \enquote*{current BOW position}. If the agent is looking in the direction of the entity, then it will be represented in the \enquote*{forward BOW position}, and if neither, then the agent might need to explore its surroundings by making several turns until the entity will be  in the \enquote*{forward BOW position}. An example is shown in Figure \ref{fig:world_state}.  
+
+%Thus, replacing specific named entities with variables allows the model to learn how to ground the navigation language separately from the particular locations on a concrete map, where the particular location can be filled in using the world-state processor. 
+
+We further pass the world-state representation to the attention mechanism, thus enabling the attention to take an active part in the grounding process. The idea is that in order for the attention to know what to focus on at a certain time, it needs to know what world-state the sentence is referring to. For example: \enquote{walk until you reach the Lily restaurant and then turn right}. In order for the attention to know that it can emphasize the \enquote*{turn} and \enquote*{right} words, it needs to know that \enquote{Lily restaurant} was already reached, which can be deduced from the current world-state.\par
+
+
+
+\subsection{Beam Search and Variations (CGAEW+ABS \& CGAEW+CBS)}
+At test time, we seek the best candidate path using beam-search. That is, we apply at each point of interpretation all possible actions and proceed with the K-highest scoring ones according to our model.
+Since our data-set contains long sequences of actions, unlike the SAIL data-set (cf.\ Table \ref{table:statistic_maps}), we face the problem of possibly comparing scores of long  and short sequences in the same beam.
+
+\citet{mei2015listen} uses such beam-search with unnormalized scores. That is, every action added to the sequence raises the score of that sequence. The beam saves only the K-smallest scores, so long sequences are more likely to fall off the beam.
+When \citet{mei2015listen} worked on the SAIL data-set using beam-search, they did not encounter a problem with this, and achieved better results with the beam-search over greedy-search. In our case though, with massive variations between candidate routes, this may be more challenging.
+
+To solve such \enquote{prioritization biases} based on length we decide to normalize the scores of the sequences we compare in the beam.  We experiment with two normalization methods: {\em normalized average score} (CGAEW+ABS), where we normalize the score according to the sequence length; and {\em normalized complex score} (CGAEW+CBS) \citep{wu2016google} where, in addition to the sequence length, we have a normalization factor which is optimized during development. 
+
+
+%However, all models described so far, lack a full world-state representation, thus not capturing features such as blocks.
+
+\section{Experiments}
+\label{expirement}
+\paragraph{Goal}We set out to evaluate our models' performance on the RUN task using the OSS data-set. In particular, we aim to evaluate the  contribution of the particular components that we added above and beyond the standard CGA model.\footnote{Our code, data-set, trained models, and data-collection protocol will be made publicly available upon acceptance.} 
+
+
+\begin{table}[t]
+\centering
+\scalebox{0.8}{
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+Baseline                          & \multicolumn{5}{c|}{20.2}                                           \\ \hline
+\multicolumn{1}{|r|}{Beam:}       & \textbf{1} & \textbf{2} & \textbf{4}     & \textbf{8} & \textbf{16} \\ \hline
+CGA                               & 36.01      & 43.94      & 42.82          & 42.23      & 42.63       \\
+CGAE                              & 46.01      & 44.89      & 44.73          & 46.76      & 46.96       \\
+CGAEW                             & 61.03      & 47.03      & 46.84          & 46.34      & 46.01       \\ \hline
+CGAEW + ABS                       & 61.03      & 59.72      & 61.53          & 54.09      & 54.99       \\
+CGAEW + CBS                       & 61.03      & 66.04      & \textbf{66.95} & 57.26      & 55.74       \\ \hline
+\end{tabular}}
+\caption{Empirical Results: Accuracy per Model}
+\label{tab:results}
+\end{table}
+
+
+\paragraph{Settings}
+
+
+ During training, we have access to the full correct path intended divided into sentences. We train the model using a negative log-likelihood loss. The entire model   is fully differentiable and deterministic, so the gradient can be directly computed and back-propagated.
+For optimization, we found Adam \citep{kingma2014adam}
+ very effective for training with this data-set. For initialization of the weights of the network we rely on  \citet{glorot2010understanding}. 
+We used a grid search to validate the hyper-parameters. The model converged at around 30 epochs and produced good results with 0.9 drop-out.
+
+%Trading computational efficiency for generalization performance,
+%we use a beam search method with a beam of 4 to produce more accurate results.
+
+
+
+
+\begin{table*}[t]
+\scalebox{0.68}{
+\begin{tabular}{ll|l|l|l|l|l|l}
+                       & \textbf{Instruction}                                                                                                  & \textbf{Baseline} & \textbf{CGA} & \textbf{CGAE} & \textbf{CGAEW} & \textbf{\begin{tabular}[c]{@{}l@{}}CGAEW\\ +ABS\end{tabular}} & \textbf{\begin{tabular}[c]{@{}l@{}}CGAEW\\ +CBS\end{tabular}} \\ \cline{2-8} 
+\multicolumn{1}{l|}{1} & \begin{tabular}[c]{@{}l@{}}Just before 9th Avenue, you will see your destination on the right, the West \\ Side Jewish Center.\end{tabular}                       & \cmark                 & \xmark            & \xmark             & \cmark              & \cmark                  & \multicolumn{1}{l|}{\cmark} \\ \cline{2-8} 
+\multicolumn{1}{l|}{2} & Turn left onto West 34th Street.                                                                                      & \xmark                 & \cmark            & \cmark             & \cmark              & \cmark                  & \multicolumn{1}{l|}{\cmark} \\ \cline{2-8} 
+\multicolumn{1}{l|}{3} & \begin{tabular}[c]{@{}l@{}}At the 8th Avenue and West 20th Street intersection, turn right onto West \\ 20th Street. \end{tabular}                                       & \xmark                 & \xmark            & \cmark             & \cmark              & \cmark                  & \multicolumn{1}{l|}{\cmark} \\ \cline{2-8} 
+\multicolumn{1}{l|}{4} & Keep going till you get to the intersection of West 21st Street.                                     & \xmark                 & \xmark            & \xmark             & \cmark              & \cmark                  & \multicolumn{1}{l|}{\cmark} \\ \cline{2-8} 
+\multicolumn{1}{l|}{5} & \begin{tabular}[c]{@{}l@{}}Keep going straight until you see a Tim Hortons on your left and then your \\ destination will be past that on the left.\end{tabular} & \xmark                 & \xmark            & \xmark             & \xmark              & \cmark                  & \multicolumn{1}{l|}{\cmark} \\ \cline{2-8} 
+\multicolumn{1}{l|}{6} & Cross  over  7th  Avenue  then  turn  to  your  left  and  cross  over  West  33rd Street.                            & \xmark                 & \xmark            & \xmark             & \cmark              & \xmark                  & \multicolumn{1}{l|}{\cmark} \\ \cline{2-8} 
+\multicolumn{1}{l|}{7} & Start at the intersection of Avenue B and East 4th street, facing Northeast.                                          & \xmark                 & \xmark            & \xmark             & \xmark              & \xmark                  & \multicolumn{1}{l|}{\xmark} \\ \cline{2-8} 
+\multicolumn{1}{l|}{8} & Head West on East 7th for 2 (large) blocks; Its a one-way street.                                                     & \xmark                 & \xmark            & \xmark             & \xmark            & \xmark                  & \multicolumn{1}{l|}{\xmark} \\ \cline{2-8} 
+\end{tabular}
+}
+\caption{Error analysis of all models, for different instructions, showing where they succeeded or failed on predicting a correct path.}
+\label{tab:error_analysis}
+\vspace{-0.1in}
+\end{table*}
+
+
+
+
+\paragraph{Evaluation Metrics}
+ We follow a similar training plan as used by  \citet{chen2011learning} on the SAIL. We train our models using three-fold cross-validation based on the
+three maps. In each fold, we keep one map as a test-set, and partition the two other maps into training (90\%) and validation (10\%) sets. We report a sized-weighted average test result. 
+
+We evaluate the accuracy of single instructions. Success is measured by generating an exact route, not striding away from the path. However, the last position is not required to be in the exact position intended, as the position explained in the instruction might not be specific enough for one grid. For example: \enquote{Go to Penn Station} could be referring to a number of adjacent grids. Therefore, the last position on the path should be facing the correct direction and within five grid euclidean distance from the intended destination.\footnote{We decided on a five grid euclidean distance from the pinned point. We selected this distance as it was the average distance our mechanical tester-workers managed to arrive from the intended pinned point.} 
+
+
+
+\paragraph{Results}
+
+ Table \ref{tab:results} shows the results of all of our models' performance, in order of their complexity, and for different beam sizes.
+
+We compare all of our models to a simple yet effective baseline  we constructed. For each sentence, the model extracts entities grounded in the map  that appear in the agent's surroundings. The baseline model then moves to the grounded entities by the order they appear in the sentence. The overall accuracy of this model on predicting the complete route is low, reaching 20.2\% accuracy. At the same time,
+we found that this model does better on the last instruction in the story compared to the rest of the instructions in the story. This is because people tend to elaborate on the whereabouts of the destination in the final sentence. But, following the {\em exact} path intended in the story is more challenging using this baseline.   
+
+ The CGA model does significantly better than the baseline, reporting  43.94\% accuracy,  improving performance especially on turns. However, it fails on instructions that contain many references to entities on the map (\enquote*{map language}). For instance: it fails on utterances with terms such as \enquote*{8th Avenue} and \enquote*{West 20th Street} appearing in instruction 3 in Table \ref{tab:error_analysis}. 
+
+
+%\textbf{CGAE}: 
+CGAE outperforms CGA, achieving 46.96\% accuracy, as the swap of entities and variables lowers the complexity of the language that the model needs to learn, and allowing the model to deal with the variety of unseen entities on the map at test time.
+Manually checking 100 random instructions, we found the entity extraction precision is 100\% and its recall is 99.96\%. Thus, we conjecture that model prediction errors did not come from errors in the entities-extraction component, but from the lack of ability to properly ground them.
+
+We further found that, in many cases, CGAE produces the right type of action, but it does not produce enough of it to reach the intended destination. For instance, instruction 4 in Table \ref{tab:error_analysis}, CGAE predicts nine correct \enquote*{WALK} actions, however this is not enough to reach the goal \enquote*{intersection of West 21st Street}. We attribute these errors to 
+the absence of a world-state representation, thus resulting in its incapability to ground instruction to specific locations in the physical world.
+
+
+%\textbf{CGAEW}: 
+CGAEW improves upon CGAE, resulting in  61.03\% accurcay. The world-state addition allowed the model to ground the instruction to the map, thus succeeding for example on correctly producing the route for instruction 4 in Table \ref{tab:error_analysis}. 
+However, we also found that the CGAEW with greedy-search outperforms the CGAEW  with  un-normalized beam-search. We discovered that most errors occurred on long-sequences of actions, as the beam-search was prioritizing short sequences and loosing the grip on relevant long ones.
+
+%\textbf{CGAEW+ABS and CGAEW+CBS}:
+The addition of a normalized beam-search added an exploration element that improves the performance of the CGAEW. 
+Both CGAEW+ABS and CGAEW+CBS improve the accuracy of the final CGAEW by overcoming the bias against long sequences. Thus CGAEW+ABS resulted in 61.53\% accuracy and CGAEW+CBS in 66.95\%. 
+%
+At the same time, we noticed that the CGAEW+ABS had a tendency to pick long sequences of actions, thus failing on short sequences that the CGAEW and the CGAEW+CBS predicted successfully (see instruction 6 in Table \ref{tab:error_analysis}). The CGAEW+CBS moderates the penalization of the current sequence length with an addition parameter which learns how much weight should the sequence length have over the beam-search score.
+Thus,  CGAEW+CBS has a more accurate balance of long-short sequences in action prioritization. 
+
+Finally, all models fail when encountering  instructions that refer to features not captured by our world-state: abstract unmarked entities  such as blocks, intersections and cardinal direction; and unnamed entities such as traffic-lights (see instructions 7-8 in Table \ref{tab:error_analysis}). Thus, future avenues for our research include the improvement of our world-state representation, enabling the model to ground  {\em generic} concepts as well. We further intend to add additional signals, for instance coming from vision
+%(a.k.a.\ StreetView), 
+(cf. \newcite{anderson2017vision}) for more accurate localization, that would improve action selection. 
+
+
+
+ 
+\section{Discussion and Conclusion}
+\label{conclusion}
+
+%Previous work on the challenge of interpreting navigation instructions in natural language relied on a simplified version of the problem, where short instructions are based on a small unrealistic map, with a handful of fixed features. 
+
+In this work, we define RUN,  the task of navigating in  realistic urban environments, based on a navigation story in natural language and a real urban map.
+%containing rich information layers and many unseen entities. %Our model, which was tested on a novel date-set we collected, takes a step forward, using real-world maps and has significant success in interpreting colloquial language to navigation actions, without the use of prior linguistic knowledge. 
+%
+We designed and collected  OpenStreeSet (OSS), a novel benchmark consisting of three large maps at the urban parts of Manhatten, containing rich information layers and an abundance of entities to be grounded.
+
+The main novelty of the OSS data-set lies in that it is not a \enquote*{toy} problem. It represents the way humans are instructing and interpreting the instructions, in the real world. It  contains a huge amount vocabulary items reflecting the abundance of entities.
+%
+As the maps do not overlap,  all encountered entities are unfamiliar at test time. %no entities are shared among the maps. 
+%The amount and variety of entities presents a major challenge for statistical learning, and  the long routes are vulnerable to error propagation. 
+%
+
+
+%Processing the map can be done mechanically and may be done offline periodically or online by demand. 
+
+We propose a novel architecture that, beyond conditioned generation and attention,  adds an entity extraction and abstraction layer to generalize the \enquote*{navigation language} and a world-state representation to ground the \enquote*{map language}. We conjecture that this method better generalizes the structure of the instructions  while not loosing the connection to the actual landmarks during interpretation. We further show the role of beam search in adding an exploration element, which  is essential to the navigation task, and the necessity to normalize it according to the sequence length. 
+
+
+
+The use of a large-scale map is essential for the RUN task. However, the amount of details in the map may present a great challenge to the process  of grounding the instructions.  Thus,  complementary tasks which learn from different sensors. E.g., the use of vision in R2R task \citep{anderson2017vision}, can also be considered.  
+ 
+We propose  the RUN task, OpenStreetSet  and our models as a basis for further studying the interpretation of  instructions in unrestricted or previously unseen geographical domains.
+
+
+%\In the event that more data will be collected in the future and segmented similarly to our data-set, our model will handle the new data.
+
+
+
+%\section{Acknowledgments}
+%We thank Yoav Goldberg, Yoav Artzi, and %Hongyuan Mei for their advice and %comments.  
+
+
+
+
+\bibliography{acl2019}
+\bibliographystyle{acl_natbib}
+\end{document}
