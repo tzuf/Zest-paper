@@ -24,6 +24,7 @@
 \usepackage{multirow}
 \usepackage{subfig}
 \usepackage{adjustbox}
+\usepackage{amssymb}
 
 
 \usepackage{xcolor}
@@ -39,6 +40,7 @@
 \usepackage{pifont}
 \usepackage{latexsym}
 \renewcommand{\UrlFont}{\ttfamily\small}
+
 
 % This is not strictly necessary, and may be commented out,
 % but it will improve the layout of the manuscript,
@@ -126,8 +128,10 @@ Our results consistently and significantly outperform the state-of-the-art on th
 
 
 \section{Introduction}
+\gal{The intro is mostly background material about ZSl, GZSL. Instead, we should present the specific problem that we adress and motivate our solution. ZSL background can be moved to another section.}
+\gal{I suggest to also state the deeper/wider problem: How can one  identify text components that are visual in nature.}
 
-\yuval{We need to stress how important this setup is, because the other widespeard attribute-based and caption-based and benchmarks for ZSL are flawed. They rely on raters annotating the attributes (or captions) on images from the \textit{test} set of unseen categories.}
+\yuval{We need to stress how important this setup is, because the other widespeard attribute-based and caption-based and benchmarks for ZSL are flawed. They rely on raters annotating the attributes (or captions) on images from the \textit{test} set of unseen categories.}\gal{this is an excellent point! }
 
 Recent successes of deep learning methods for the task of object recognition are heavily dependent on large dataset collection.
 Moreover, the number of categories keeps increasing and with it the need to collect more data. However, this process of collecting millions of images and their corresponding tags is highly expensive and time-consuming. \par
@@ -164,6 +168,7 @@ imagine you never saw a zebra in your life but know how a horse looks like. What
 
 Our task raises many challenges: (1) our images in this task are of birds, and as the differences between the birds are small, it is a fine-grained classification task; (2) This is an expert task, which is hard for non-bird-experts to complete, as in addition to the small difference between the birds, the text contains terminology for describing a bird that is not likely to be familiar to a layman;
 (3) The text descriptions of the classes are long and very noisy. \par 
+
 
 
 The ZSL task contains two real scenarios: (1) an \enquote{easy} scenario where we see a new unknown object that is similar to a previously known object; (2) a \enquote{hard} scenario where the new object is different from known objects, thus, the relevance between seen and unseen objects is minimal.\par
@@ -203,7 +208,7 @@ The significance of the improvement of our text processing methods, on a variety
 
 Text-based zero-shot learning is a multimodal learning task, composed of three parts: (1) text representation (2) image-representation (3) a compatibility function between the two modalities: image and text. \par
 
-Previous works focused mainly on the latter two parts: improving the image representation and the compatibility function. In this work, we focus on the text modality. \par
+Previous work \gal{IMHO in this context, work is not a countable noun.} focused mainly on the latter two parts. Here we focus on the text modality. \par
 
 In the image modality many studies that do ZSL for object recognition \cite{xu2018attngan,lei2015predicting,qiao2016less,akata2016multi}, rely on features extracted using the well-established method of
 Convolutional Neural Network (CNN) \cite{lecun1995convolutional}. More recent works, use object detection methods to detect parts of the object and extract visual features at the part-level \cite{elhoseiny2017link,zhu2018generative,zhang2016spda}. This
@@ -218,7 +223,7 @@ There are different approaches as to the function that learns compatibility func
 \begin{figure*}[t]
 \centering
 \scalebox{1}{
-\includegraphics[width=\textwidth]{images/ZEST_model_4.png}}
+\includegraphics[width=\textwidth]{images/ZEST_model_5.png}}
  \caption{Our ZEST$_{similarity}$+VS model with similarity component and Visually-Focused Summarization (VS) component.}
 \label{fig:data}
 \end{figure*}
@@ -246,14 +251,18 @@ The key idea we would like to propose is to transform the text representation fr
 
 Our basic, vanilla, architecture is a simple multiplicative attention mechanism \cite{luong2015effective} inspired by \citet{romera2015embarrassingly}. We model the problem using an attention-based model, where the image $x$ is queried
 %considered 
-against the candidate documents of the classes D.
-
+against the candidate documents of the classes $D$ \gal{define variables formally. 
+What is their dimension and domain?}.
+Formally, let as denote $X\in \mathbb{R}^{N\times m}$ as a set of N image feature vector $x$.
+We denote $D\in \mathbb{R}^{N'\times m'}$ as a set of N' document feature vector $d$.
+We aim to learn a matrix \(W\in  \mathbb{R}^{m\times m'}\):
+ 
 
 \begin{equation}
 \label{equation:attention}
 \begin{aligned}
 \begin{split}
-&f(x,D)=x^TWD
+&f(x,D)=x^T\odot WD
 \end{split}
 
 \end{aligned}
@@ -535,9 +544,9 @@ ZEST$_{similarity}$+HUMAN                          & 48.99                      
  \scalebox{0.87}{
 \begin{tabular}{l|c|c} 
 \Xhline{6\arrayrulewidth}
-                                & \textbf{CUB }  & \textbf{NAB }   \\ 
-\hline
-\textbf{methods }               & \textbf{SCS }  & \textbf{SCS }   \\ 
+    \multirow{2}{*}{ \textbf{methods }} & \textbf{CUB }  & \textbf{NAB }   \\ 
+\cline{2-3}
+                                    & \textbf{SCS }  & \textbf{SCS}   \\ 
 \hline
 ZEST$_{vanilla}$                     & 39.16          & 27.61          \\
 ZEST$_{vanilla}$ + bird category  & 43.71          & 36.73           \\
@@ -558,9 +567,9 @@ Zest$_{similarity}$ (with 2 cluster) & \textbf{47.48} & \textbf{38.2}   \\
  \scalebox{0.76}{
 \begin{tabular}{l|cc|cc} 
 \Xhline{6\arrayrulewidth}
-                  & \multicolumn{2}{c|}{\textbf{CUB } } & \multicolumn{2}{c}{\textbf{NAB } }  \\ 
-\hline
-\textbf{methods } & \textbf{SCS }   & \textbf{SCE }     & \textbf{SCS }   & \textbf{SCE }     \\ 
+                  \multirow{2}{*}{\textbf{ methods} } & \multicolumn{2}{c|}{\textbf{CUB } }                                                              & \multicolumn{2}{c}{\textbf{NAB} }           \\ 
+\cline{2-5}
+                                    & \textbf{SCS}                                    & \textbf{SCE}                                   & \textbf{SCS}         & \textbf{SCE}          \\ 
 \hline
 ESZSL             & 0.185           & 0.045             & 0.092           & 0.029             \\
 ZSLNS             & 0.147           & 0.044             & 0.093           & 0.023             \\
@@ -585,10 +594,11 @@ ZEST$_{similarity}$+HUMAN        & 0.445           & 0.163             & -      
 
 
 
+
 \subsection{Results}
 
 Table \ref{tab:results} shows the top-1 accuracy
-on (1) the top box is the random pick of classes; (2) the second box is previous works; (3) the third box is our proposed models which are comparable to the previous works seen; (4) Our model that uses an additional data - captions. \par 
+on (1) the top box is the random pick of classes; (2) the second box is previous work; (3) the third box is our proposed models which are comparable to the previous work seen; (4) Our model that uses an additional data - captions. \par 
 
 \paragraph{DS Model:} 
 According to table \ref{tab:results} we can see that, for the DS easy-split, the DS model achieves competitive results on the SCS-split to previous methods - 40.402\% on CUB and 37.002\% on NAB. The high scores on the SCS-split, where similar birds are seen in training, is expected, as this method relies on similarities between texts and similarities between images.
@@ -627,7 +637,7 @@ We then compare both ZEST$_{similarity}$ and the GAZSL to the use of HUMAN summa
 
 \begin{figure}[t]
 \centering
-\scalebox{0.42}{
+\scalebox{0.4}{
 \includegraphics[width=\textwidth]{images/captopm_graph_3.png}}
  \caption{Accuracy per the number of captions used for summarization, measured on the hard Super-Category-Exclusive split (SCE) of CUB. It demonstrates that even 5 captions are sufficient to guide the visually-focused summarization module.}
 \label{fig:captions}
