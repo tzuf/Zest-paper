@@ -128,19 +128,15 @@ Our results consistently and significantly outperform the state-of-the-art on th
 
 
 \section{Introduction}
-\gal{The intro is mostly background material about ZSl, GZSL. Instead, we should present the specific problem that we adress and motivate our solution. ZSL background can be moved to another section.}
-\gal{I suggest to also state the deeper/wider problem: How can one  identify text components that are visual in nature.}
+%\gal{The intro is mostly background material about ZSl, GZSL. Instead, we should present the specific problem that we adress and motivate our solution. ZSL background can be moved to another section.}
+%\gal{I suggest to also state the deeper/wider problem: How can one  identify text components that are visual in nature.}
 
-\yuval{We need to stress how important this setup is, because the other widespeard attribute-based and caption-based and benchmarks for ZSL are flawed. They rely on raters annotating the attributes (or captions) on images from the \textit{test} set of unseen categories.}\gal{this is an excellent point! }
-
-Recent successes of deep learning methods for the task of object recognition are heavily dependent on large dataset collection.
-Moreover, the number of categories keeps increasing and with it the need to collect more data. However, this process of collecting millions of images and their corresponding tags is highly expensive and time-consuming. \par
+%\yuval{We need to stress how important this setup is, because the other widespeard attribute-based and caption-based and benchmarks for ZSL are flawed. They rely on raters annotating the attributes (or captions) on images from the \textit{test} set of unseen categories.}\gal{this is an excellent point! }
 
 
 
-
-Zero-shot learning aims at overcoming the need to collect data for new categories, by learning the connections between images and auxiliary knowledge about the classes. Thus, the input is an image and auxiliary information about the classes, and the output is the class label. In the zero-shot phase, new classes are given, unseen during training. In the ZSL, the auxiliary information's function is to compensate for the unseen-before visual information.
-\par
+Zero shot-learning (ZSL) for image classification 
+is a problem of classifying images given auxiliary information. During test time, new classes are given and the task is to transfer knowledge learned from seen classes during training to unseen ones given at test time.
 
 
 \begin{figure}[th]
@@ -152,15 +148,19 @@ Zero-shot learning aims at overcoming the need to collect data for new categorie
 \label{fig:bird_example}%
 \end{figure}
 
-Most previous models for zero-shot image recognition tasks rely on auxiliary information given by experts who manually describe each class by a set of semantically meaningful properties known as attributes (e.g. black-tail for a class of dogs) \citep{farhadi2009describing, lampert2009learning, atzmon2018probabilistic,akata2013label,wang2013unified,changpinyo2016synthesized, akata2015label,ji2018stacked}. \par
+In the common setup for this task the auxiliary information is a set of semantically meaningful properties known as attributes for describing the class (e.g. black-beak). A common practice for obtaining class attributes is manually collecting 
+attributes over all images (test and train alike) by human raters. The class description is then produced by averaging per attribute in all images that belong to the class. This process is problematic, as the human raters are exposed to images from the test-set - contrary to the purpose of a ZSL setup.
+
+
+%\citep{farhadi2009describing, lampert2009learning, atzmon2018probabilistic,akata2013label,wang2013unified,changpinyo2016synthesized, akata2015label,ji2018stacked}. \par
 
 
 
 
 Recently a more 
-%realistic
-applicable
-approach was introduced, relying on available online text to describe the classes, thus avoiding the expensive annotation.
+realistic
+%applicable
+approach was introduced, relying on available online text to describe the classes, thus avoiding the expensive annotationת, and exposure to images from the test-set.
 Thus, the input of the task is (1) an image; and (2) the text descriptions of the classes as the auxiliary information. \par
 
 To get an intuition of the task consider the following situation:
@@ -170,12 +170,15 @@ Our task raises many challenges: (1) our images in this task are of birds, and a
 (3) The text descriptions of the classes are long and very noisy. \par 
 
 
-
 The ZSL task contains two real scenarios: (1) an \enquote{easy} scenario where we see a new unknown object that is similar to a previously known object; (2) a \enquote{hard} scenario where the new object is different from known objects, thus, the relevance between seen and unseen objects is minimal.\par
 
 Continuing with our previous example of zebras and horses, we note that that similar objects (images) have similar texts and that in order to differentiate between the objects we need to consider the visual-descriptions of the text.  Thus, in an easy scenario where the horse is known to us but the zebra is not - we can benefit from the similarity between the objects and texts. Whereas in a hard scenario we know neither the class of horses or zebras, and we want to classify a new images as horse or zebra. This requires that we enhance the visual differences in the text.\par
 
-In this work, we focus on the text representation, and ask the question: which aspects of the text are important for classifying images? We use the intuitions given in the horse-zebra example: (1) that similar objects (images) have similar texts - to create a kernel-like method to enhance separability of texts that reflects real similarity of the objects; (2) that the differences are salient visual features in the text - by extracting visual descriptions of the text, thus, enhancing the compatibility of the text and the image (see Figure \ref{fig:bird_example}).\par
+In this work, we focus on text representation. We address a key question for detecting aspects of the text which are important for classifying images: \textit {How can we identify text components that are visual in nature?}
+
+
+%which aspects of the text are important for classifying images?
+We use the intuitions given in the horse-zebra example: (1) that similar objects (images) have similar texts - to create a kernel-like method to enhance separability of texts that reflects real similarity of the objects; (2) that the differences are salient visual features in the text - by extracting visual descriptions of the text, thus, enhancing the compatibility of the text and the image (see Figure \ref{fig:bird_example}).\par
 
 \par
 
@@ -205,7 +208,6 @@ The significance of the improvement of our text processing methods, on a variety
 
 \section{Related Work}
 
-
 Text-based zero-shot learning is a multimodal learning task, composed of three parts: (1) text representation (2) image-representation (3) a compatibility function between the two modalities: image and text. \par
 
 Previous work \gal{IMHO in this context, work is not a countable noun.} focused mainly on the latter two parts. Here we focus on the text modality. \par
@@ -223,7 +225,7 @@ There are different approaches as to the function that learns compatibility func
 \begin{figure*}[t]
 \centering
 \scalebox{1}{
-\includegraphics[width=\textwidth]{images/ZEST_model_5.png}}
+\includegraphics[width=\textwidth]{images/ZEST_model_3.png}}
  \caption{Our ZEST$_{similarity}$+VS model with similarity component and Visually-Focused Summarization (VS) component.}
 \label{fig:data}
 \end{figure*}
@@ -235,7 +237,14 @@ Most studies to date have used an impoverished text representation such as Bag-o
 
 In this work we aim to establish the importance of adequately processing the text side, to obtain a sound representation of the features most salient for the task. This is done to complement the work done on the visual modality, that aimed to increase image compatibility with the text.
 
+\section{Background}
+\subsection{Zero-shot Learning (ZSL)}
 
+Recent successes of deep learning methods for the task of object recognition are heavily dependent on large dataset collection.
+Moreover, the number of categories keeps increasing and with it the need to collect more data. However, this process of collecting millions of images and their corresponding tags is highly expensive and time-consuming. \par
+
+Zero-shot learning aims at overcoming the need to collect data for new categories, by learning the connections between images and auxiliary knowledge about the classes. Thus, the input is an image and auxiliary information about the classes, and the output is the class label. In the zero-shot phase, new classes are given, unseen during training. In the ZSL, the auxiliary information's function is to compensate for the unseen-before visual information.
+\par
 
 
 
@@ -257,12 +266,12 @@ Formally, let as denote $X\in \mathbb{R}^{N\times m}$ as a set of N image featur
 We denote $D\in \mathbb{R}^{N'\times m'}$ as a set of N' document feature vector $d$.
 We aim to learn a matrix \(W\in  \mathbb{R}^{m\times m'}\):
  
-
+%\odot 
 \begin{equation}
 \label{equation:attention}
 \begin{aligned}
 \begin{split}
-&f(x,D)=x^T\odot WD
+&f(x,D)=x^TWD
 \end{split}
 
 \end{aligned}
