@@ -123,11 +123,13 @@ We study the problem of recognizing visual entities from the textual description
 %In contrast, here we propose to focus on the {\em textual} representation, 
 and distill from the description the most relevant information to effectively match visual features to the parts of the text that discuss them. 
 Specifically, %(1) we leverage the {\em similarity} between images as it is reflected in texts, that is, when the actual classes of images look similar, the texts tend to be similar too; and
-(1) we propose to leverage the {\em similarity} between species, reflected in specie descriptions. 
+(1) we propose to leverage the {\em similarity} between species, reflected in the similarity between text descriptions of the species. 
 %when the actual classes of images look similar, the texts tend to be similar too; and
-(2) we derive {\em visual summaries} of the texts, i.e., %that making the textual description more compatible with
+(2) we derive {\em visual summaries} of the texts, i.e., 
 extractive summaries that focus on the {\em visual} features that tend to be reflected in images.
 We propose a simple attention-based model augmented with  the similarity and visual summaries components. Our empirical results consistently and significantly outperform the state-of-the-art on the largest benchmarks for {\em text-based zero-shot learning}, illustrating the critical importance of texts for zero-shot image-recognition.
+
+%that making the textual description more compatible with
 
 
 
@@ -193,13 +195,13 @@ As opposed to previous work on text-based ZSL employing textual descriptions \ci
 %To get an intuition on the task, 
 %\gal{(1) This feels out of place. Either move  to earlier paragraph or move to later when you explain the idea of similarity and embedding. } \tzuf{Reut and I have been back and forth on the position of this paragraph. I don't see else where it can belong and it is important as people from NLP just don't get this task.}
 To get an intuition about the task setup and our proposed solution, consider the following situation.
-Imagine you have never saw a zebra but have seen a horse. What if you were given a text describing a zebra: \enquote{Zebras have hooves, mane, tail, pointed ears, and white and black stripes}. This description would probably be very close to a description of a horse having \enquote{hooves, mane, tail, pointed ears} and you would probably be looking for an image that reminds you of a horse but has \enquote{white and black stripes}. So, even without ever seeing a zebra, using text-descriptions of the zebra and knowledge already acquired about horses, one can correctly classify unknown classes like a zebra.
+Imagine you have never seen a zebra but have seen a horse. What if you were given a text describing a zebra: \enquote{Zebras have hooves, mane, tail, pointed ears, and white and black stripes}. This description would probably be very close to a description of a horse having \enquote{hooves, mane, tail, pointed ears} and you would probably be looking for an image that reminds you of a horse but has \enquote{white and black stripes}. So, even without ever seeing a zebra, using text-descriptions of the zebra and knowledge already acquired about horses, one can correctly classify unknown classes like a zebra.
 
 %which aspects of the text are important for classifying images?
 Our proposed solution has two-phases. First,
 based on the intuition that similar objects (or images thereof) tend to have similar texts, %create a kernel-like method \gal{I think this is not kernel-like after all} \reut{edited. how's that?} 
 we encode a similarity feature that enhances the separability of text descriptions. %that reflects real similarity of the objects; 
-In addition, we leverage the intuition that the differences between species would be their most salient visual features, and extract visually relevant descriptions from the text.
+In addition, we leverage the intuition that the differences between text description of species would be their most salient visual features, and extract visually relevant descriptions from the text.
 %thus enhancing the compatibility of the text and the image ( Figure \ref{fig:bird_example}). 
 
 
@@ -217,7 +219,7 @@ The contributions of this paper are threefold.
 %\begin{enumerate} \item 
 First, to the best of our knowledge we are the first to showcase the critical importance of the text representation in zero-shot image-recognition scenarios, and we present two concrete text-based processing methods that vastly improve the results.
 Second, we demonstrate the efficacy and generalizability of our proposed methods by applying them to both the {\em zero-shot} and {\em generalized zero-shot} tasks, outperforming all previously reported results on the CUB and NAB Benchmarks. %\citep{wah2011caltech, van2015building}. 
-Finally, we show that visual aspects learned from one dataset can transfer effectively to another dataset without the need to obtain dataset-specific captions. 
+Finally, we show that visual aspects learned from one dataset can be transferred effectively to another dataset without the need to obtain dataset-specific captions. 
 %\end{enumerate}
 The efficacy of our proposed solution on these benchmarks illustrates that purposefully exposing the {\em visual features in texts} is indispensable for tasks that learn to align the vision-and-language modalities. %\gal{revise.}\reut{Edited. check if agree?}
 
@@ -232,7 +234,7 @@ aims at overcoming the need to label massive datasets for new categories, by lea
 %Thus, the input is an image and auxiliary information about the classes, and the output is the class label. In the zero-shot phase, new classes are given, unseen during training. In the ZSL, the auxiliary information's function is to compensate for the unseen-before visual information.
 %%
 %%
-Text-based ZSL is a specific multimodal instantiation of this learning task that uses natural language descriptions as the auxiliary information. Models for text-based ZSL are typically composed of three parts: (1) the text representation (2) the image-representation (3) a compatibility function between the two.  While most previous work focused mainly on the latter two components, here we %\cite{zhu2018generative, akata2015evaluation}. In this work we 
+Text-based ZSL is a specific multimodal instantiation of this learning task that uses natural language descriptions as the auxiliary information. Models for text-based ZSL are typically composed of three parts: (1) the text representation (2) the image representation (3) a compatibility function between the two.  While most previous work focused mainly on the latter two components, here we %\cite{zhu2018generative, akata2015evaluation}. In this work we 
 focus on the text. 
 
 Most ZSL studies  for object recognition are aimed at processing the image modality. For example, \citet{xu2018attngan,lei2015predicting,qiao2016less,akata2016multi} rely on visual features extracted using 
@@ -305,7 +307,7 @@ against a set of candidate documents.
 
 Formally, let $x^{\mathcal{S}}_1,\ldots,x^{\mathcal{S}}_{M}$ be image feature vectors from a training-set, where $x^{\mathcal{S}}_i\in \mathbb{R}^{m}$. The set of $M$ training images corresponds to a set of $L$ seen classes. Each class has a \textit{single} \enquote{class description} which is a document written by experts in free language (e.g. Wikipedia). We denote $d^{\mathcal{S}}_1,\ldots,d^{\mathcal{S}}_{L}$ as a set of $L$ document feature vectors, 
 where $d^{\mathcal{S}}_i\in \mathbb{R}^{\hat{m}}$.
-Likewise, let $x^{\mathcal{U}}_1,\ldots,x^{\mathcal{U}}_{N}$ be the image feature vectors from a test-set, where $x^{\mathcal{U}}_i\in \mathbb{R}^{m}$. The set of test images corresponds to a set of $K$ unseen classes. Likewise, each class has a \textit{single} \enquote{class description}. We denote $d^{\mathcal{U}}_1,\ldots,d^{\mathcal{U}}_{K}$ as a sets of document feature vectors, 
+Likewise, let $x^{\mathcal{U}}_1,\ldots,x^{\mathcal{U}}_{N}$ be the image feature vectors from a test set, where $x^{\mathcal{U}}_i\in \mathbb{R}^{m}$. The set of test images corresponds to a set of $K$ unseen classes. Likewise, each class has a \textit{single} \enquote{class description}. We denote $d^{\mathcal{U}}_1,\ldots,d^{\mathcal{U}}_{K}$ as a sets of document feature vectors, 
 where $x^{\mathcal{U}}_i\in \mathbb{R}^{\hat{m}}$.
 Finally, \(W\in \mathbb{R}^{m\times\hat{m}}\) is our learned matrix.
 At inference, the label assignment of
@@ -357,7 +359,7 @@ The matrix $W$ is then learned by minimizing the categorical cross-entropy loss:
 \paragraph{Image Encoding}
 \label{section:Image_Encoder}
 The goal of the image encoder is to transform the image into a vector representation of the most salient visual features for the classification. 
-We adopt the image encoder for text-based ZSL of \citet{zhang2016spda, zhu2018generative,elhoseiny2017link}. It is based Fast R-CNN with \citep{girshick2015fast} a VGG16 backbone for object detection to detect seven semantic parts in the CUB dataset:
+We adopt the image encoder for text-based ZSL of \citet{zhang2016spda, zhu2018generative,elhoseiny2017link}. It is based on a Fast R-CNN with \citep{girshick2015fast} a VGG16 backbone for object detection to detect seven semantic parts in the CUB dataset:
 \enquote{head},\enquote{back},\enquote{belly},\enquote{breast},\enquote{leg},\enquote{wing},\enquote{tail}. 
 The encoded features of each visual part are then concatenated into a feature vector which functions as the image representation for the text-based ZSL.
 
@@ -375,7 +377,7 @@ The encoded features of each visual part are then concatenated into a feature ve
 \label{section:Text_Encoder}
 Our basic encoder processes the text into a feature vector. Similar to previous studies, we employ a TF-IDF representation \citep{salton1988term}. %which requires the following pre-processing:
 We preprocess the text to tokenize words, remove stop words, and stem the remaining words. Then, we extract a feature vector using TF-IDF. This processing procedure is similar to the text processing presented by \citet{zhu2018generative}.
-The dimensionalities of TF-IDF features for CUB and NAB are 7551 and 13217 respectively. 
+The dimensionalities of TF-IDF features for CUB and NAB are 7,551 and 13,217 respectively. 
 
 \section{The Proposed Approach}
 \label{sections:ZEST}
@@ -383,10 +385,12 @@ The key idea underlying our solution is to replace the text representation of th
 %\yuval{It was hard for me to parse this sentence}
 %%
 %Concretely, instead of letting the text representation encode a broad class description, we designed a representation that encodes specifically the {\em similarities} and {\em differences} from other species. 
-To do so, we employ two different (complementary) methods: (i) induce a similarity measure used for clustering; and (ii) extract visually relevant text descriptions. Both methods are incorporated in our proposed end-to-end vision-and-language classification architecture, presented in Figure \ref{fig:model}. In what follow we describe the similarity component \ref{section:similarity_component}, and the extraction of visually relevant summaries \ref{section:vrs_component}.
+To do so, we employ two different (complementary) methods: (i) induce a similarity measure used for clustering; and (ii) extract visually relevant text descriptions. Both methods are incorporated in our proposed end-to-end vision-and-language classification architecture, presented in Figure \ref{fig:model}. In what follows we describe the similarity component \ref{section:similarity_component}, and the extraction of visually relevant summaries \ref{section:vrs_component}.
 
 
 \subsection{The Importance of being Similar}
+\label{section:similarity_component}
+
 %\yuval{I would revise both titles saying ``the importance of XX''. Can we say something more explicit about the claim of this section? Currently it is confusing, since it is not clear who is ``being'' similar, how do we measure importance? do we measure importance at all? how do we use this importance, etc.. }
 
 Our proposed method leverages the similarities between images and texts. That is, when the images look similar, the texts describing their classes are also similar, and vice versa. Here, we propose
@@ -404,9 +408,9 @@ to reconstruct this similarity link.
 %%
 %Our intuition is that similarities between texts will suggest a similarity between objects, and vice versa.
 %%
- To this end, we propose two models: (1) a strong baseline based on two nearest neighbor similarity method which creates a link between images and texts (2) adding a similarity component to our model ZEST$_{vanilla}$.
+ To this end, we propose two models: (1) a strong baseline based on two nearest neighbors which creates a link between images and texts (2) adding a similarity component to our model ZEST$_{vanilla}$.
 %%
-For both models we use the Image Encoder (section \ref{section:Image_Encoder} to process the images $x$, and the Text Processing (section \ref{section:Text_Encoder}) to process documents D.
+For both models we use the Image Encoder (section \ref{section:Image_Encoder}) to process the images $x$, and the Text Processing (section \ref{section:Text_Encoder}) to process documents D.
 
 
 
@@ -443,11 +447,10 @@ Figure \ref{fig:DS} presents our Nearest Neighbor Similarity (NNS) method, which
 %Likewise, \(d^{train}_{k}\) (and \(d^{zero}_{k}\)) denote the description of a seen (unseen) image with $\hat{N}^{train}$ and $\hat{N}^{zero}$ size sets in the training (and zero-shot) phase respectively.\par
 
 The algorithm is as follows. Given an image $x^{\mathcal{U}}$ from an unseen class in the zero-shot phase,
-we first look for the nearest neighbor image in the set of training images, using cosine similarity. The closest image from the training set $x^{\mathcal{S}}_k$ corresponds to a document from training $d^{\mathcal{S}}_{\hat{k}}$. We then look for the nearest neighbor text in from test-set $d^{\mathcal{U}}_y$ and predict the corresponding class label y.
+we first look for the nearest neighbor image in the set of training images, using cosine similarity. The closest image from the training set $x^{\mathcal{S}}_k$ corresponds to a document from training $d^{\mathcal{S}}_{\hat{k}}$. We then look for the nearest neighbor text in from test set $d^{\mathcal{U}}_y$ and predict the corresponding class label y.
  
 
 \subsubsection{ZEST$_{similarity}$}
-\label{section:similarity_component}
 %\yuval{This is a major novelty of this work, I would explain it in more detail, }
 
 %Having established the importance of similarity, \reut{have we really already eastablished that?} here 
@@ -456,25 +459,24 @@ A different way to incorporate textual similarity into the classification is to 
 %Our approach aims to transform the text space into a linearly separable space, where sets of texts of similar birds are separable. \yuval{wouldn't go there}
 
 The Basic Encoder used captures similarities and differences at the word-level. However, to find similarities at the document level we add to this vector our $similarity$ component, %\yuval{What is this component? First time it is described. Give more detail. }
-which applies unsupervised clustering to all class descriptions in the training and test texts. We use two different clusters methods that capture different aspects of text similarities. The cluster indexes are then embedded as a BOW (hence cluster embedding). \par
+which applies unsupervised clustering to all class descriptions in the training and test texts. We use two different clustering methods that capture different aspects of text similarities. The cluster indexes are then embedded as a BOW (hence cluster embedding). \par
 
 %This similarity-based representation is thus the TF-IDF vector concatenated with its cluster embedding, and it is then passed as input to the ZEST$_{vanilla}$ architecture described in Section~\ref{section_ZEST_C}. \par
 
-The cluster embedding is then concatenated with the TF-IDF vector, on the condition that a significant percentage (above k\%) of test documents are clustered with the training documents. This condition is added, for cases where the objects and texts are different and very little can be gained by constructing a link similarity between images and texts.
 \par
 %%
 We hypothesize that the similarity component will work well on the \enquote{easy} scenario - where closely related birds are seen during training, and their text can cluster together to indicate these similarities.
 
 \subsection{The Importance of Being Seen}
+\label{section:vrs_component}
 
 Here we extract visually relevant features \textit{from the text}, making the texts that enter the classification more compatible with the salient visual information typically reflected in images. 
 
 While the similarity method takes advantage of the similarity between objects seen in training and objects seen at test time, here we want to address the harder scenario, where similar objects are observed together during test time only (e.g. zebras and mules), and they may be very different from those observed during training. 
 
-To differentiate between classes in the test-set we need to emphasize the parts that are different, both in the image and the text --- and these are typically their most salient visual features. % Our aim here is then to extract visually relevant features from the text, thus making the texts that enters the classification more compatible with the salient visual information typically reflected in images. % Yuval: I moved this the last sentence to the opening of this section 
+To differentiate between classes in the test set we need to emphasize the parts that are different, both in the image and the text --- and these are typically their most salient visual features. % Our aim here is then to extract visually relevant features from the text, thus making the texts that enters the classification more compatible with the salient visual information typically reflected in images. % Yuval: I moved this the last sentence to the opening of this section 
 
 \subsubsection{Visually Relevant Summaries (VRS)}
-\label{section:vrs_component}
 %\gal{No hyphenation of compund adjectives when it has an 'ly suffix'. See rules of using hyphens www.grammarbook.com/punctuation/hyphens.asp} 
 
 Our method for enhancing the textual description is based on visually relevant extractive Summaries.
@@ -485,23 +487,23 @@ In this work we define {\em visually relevant extractive summarization} (VRS) as
 A {na\"{i}ve} approach for VRS would be to extract sentences with parts that we know are visually salient in our domain (e.g., the 7 parts employed by the vision recognition representation). However, this na\"{i}ve approach has several drawbacks. First, bird parts can be described using many different terms and paraphrases; additionally, a bird can be described by its property values (e.g. black), without any mention of the attribute (e.g., beak). 
 Instead, we propose to use the similarity of sentences in the documents and compare to naturally occurring sentences (`in the wild') containing VRL. % According to this approach, if we want to extract sentences that contain VRL than we need to compare the similarity between sentences in the document and other VRL sentences 
 
-Note that we cannot rely on descriptions of particular species due to the zero-shot setup. We must do with descriptions of objects in the {\em general kind} %that can be be obtained for the {\em general class} 
+Note that we cannot rely on descriptions of particular species due to the zero-shot setup. We must do with descriptions of objects in the {\em general domain} %that can be be obtained for the {\em general class} 
 of objects we are interested in classifying. 
 
 \subsubsection{ZEST$_{similarity}$+VRS}
 One way to obtain naturally-occurring descriptions of birds is from captions that describe bird images. Critically, these captions need {\em not} be from our dataset, they can describe any bird image. 
 
-We propose to use a set of bird captions to create an unsupervised classifier that predicts whether a sentence is relevant, that is, whether it contains descriptions that can be {\em seen} in a bird image.
+We propose to use a set of L bird captions to create an unsupervised classifier. The classifier will receive a set of sentences (assembled as a document), and for each sentence the classifier will predicts whether the sentence is relevant, that is, whether it contains descriptions that can be {\em seen} in a bird image.
 %We use only captions of birds that are seen during training.
 
-For each document we propose to calculate the pairwise similarity between captions and sentences in the wiki-description, and based on this similarity, assign a VRS-score to each sentence.
+For each document we propose to calculate the pairwise similarity between captions and sentences in the Wikipedia description, and based on this similarity, assign a VRS-score to each sentence.
 
 % To this end, we embed both captions ($c_{0:L}$) and sentences ($s_{0:M}$) in the document using
 % pre-trained BERT network \cite{devlin2019bert}. The output encoded-tokens are then passed to a pre-trained siamese and triplet networks \citep{Schroff_2015_CVPR} to derive semantically meaningful fixed-size sentence embeddings that can be compared using cosine-similarity \citet{reimers2019sentence}.
 % The VRS-score of sentence $s_j$ with respect to all available captions  $c_{1:L}$ is thus defined to be:
 
 
-We calculate the VRS-score of a sentence $s_j$ to a caption by computing the cosine similarity of the embedding of both the captions ($c_{0:L}$) and sentences ($s_{0:M}$) in the document. For a fixed-size sentence embeddings, we use a pre-trained siamese-and-triplet network \citep{reimers2019sentence, Schroff_2015_CVPR} on top of a pre-trained BERT network \cite{devlin2019bert}.
+We calculate the VRS-score of a sentence $s_j$ to a caption by computing the cosine similarity of the embeddings of both the captions ($c_{0:L}$) and sentences ($s_{0:M}$) in the document. For a fixed-size sentence embeddings, we use a pre-trained siamese-and-triplet network \citep{reimers2019sentence, Schroff_2015_CVPR} on top of a pre-trained BERT network \cite{devlin2019bert}.
 
 % The output encoded-tokens are then passed to a pre-trained siamese and triplet networks \citep{Schroff_2015_CVPR} to derive semantically meaningful fixed-size sentence embeddings that can be compared using cosine-similarity \citet{reimers2019sentence}.
 
@@ -511,24 +513,24 @@ The VRS-score of sentence $s_j$ with respect to all available captions  $c_{1:L}
 \begin{split}
 \label{eq:score}
 &score(s_j)= \frac{1}{L}
-&\sum_{i=0}^{L} \frac{c_i\cdot s_j}{\| s_j\|\| c_i\| }
+&\sum_{i=1}^{L} \frac{c_i\cdot s_j}{\| s_j\|\| c_i\| }
 \end{split}
 \end{aligned}
 \end{equation}
 %\gal{looks like you wanted to define an average over cosine scores $\sum_i\cos(c_i, s_j)$. We already used cosine before, no need to define it now. }
 
 
-We then take the highest k scoring sentences from \(s_{0:M}\). 
+We then take the highest \textit{k} scoring sentences from \(s_{0:K}\). 
 %\gal{30 and 3/4 looks arbitrary. Are you certain that you did not look at the test set when you selected this? you need to show the sensitivity of the results to these values. Also, I recommend that you write here that you take the top $k$, and in the experiment section write that you used $k=30$} 
 %\tzuf{the 30 sentences are half of the data, it showed high results on validation and then on test, we didn't try other, but optimization on validation might help here}
-to be the visually relevant extractive summary of the document. We can then concatenate the similarity embedding to the VRS summary of the text, and perform the multiplicative attention on the this revised encoding of the documents and the same image encoding as before.\par
+to be the visually relevant extractive summary of the document. We can then concatenate the similarity embedding to the VRS summary of the text, and perform the multiplicative attention on this revised encoding of the documents and the same image encoding as before.\par
 %\yuval{Why 30 sentences? or 3/4? Did we choose it on a validation set? Is it a common rule of thumb?}
 
 A bird's eye 
 %(pun intended)
 overview of our overall architecture is presented in Figure~\ref{fig:model}.
 %\reut{I had to :) feel free to remove the pun but leave the ref to the table}. 
-The text that enters the $similarity$ (clustering) component is the original Wikipedia document, {\em not} the VRS summary of the document. Documents contain many non-visual descriptions that are unobserved in the images. However, these non-visual descriptions might still be important to capture the similarity between documents. For example, similar-looking birds are likely to be in the same habitat. Thus, the VRL sentence extraction and the similarity enhancement are operate in parallel on the original document. 
+The text that enters the $similarity$ (clustering) component is the original Wikipedia document, {\em not} the VRS summary of the document. Documents contain many non-visual descriptions that are unobserved in the images. However, these non-visual descriptions might still be important to capture the similarity between documents. For example, similar-looking birds are likely to be in the same habitat. Thus, the VRL sentence extraction and the similarity enhancement  operate in parallel on the original document. 
 \section{Experiments}
 
 \subsection{Experiment setting}
@@ -539,7 +541,7 @@ The CUB dataset contains 11,788 images of 200 bird species, and the NAB
 is a larger dataset of birds with 48,562 images of 404 classes\footnote{\citet{elhoseiny2017link} merged the original 1,011 classes according to the subtle division of classes.}.
 The texts of both CUB and NAB are long, containing non-visual information. CUB has an average of 869 tokens and 42 sentences in class documents. NAB has an average of 1277 tokens and 58 sentences in class documents. 
 
-\paragraph{Two split Settings} We use the two splits presented by \citet{elhoseiny2017link}: (1) Super Category-Shared (SCS), also referred to as the \enquote*{easy} split; and (2) Super-Category-Exclusive (SCE), also referred to as the \enquote*{hard} split. In the SCS, for each class in the test-set, at least one class in the training set belongs to the same category (categories are organized taxonomically). For example, in Figure \ref{fig:bird_example}, the Rufous Hummingbird and the Ruby-throated Hummingbird are both from the Hummingbird category. In the SCE, all classes in a category are in the same set. Namely, if a class is in the test-se,t then other classes from the same category are also in the test-set, and will never be seen during training. Intuitively, classes from the same category have high similarity in both images and texts, so while in SCS similar images have been seen during training, in the SCE a class from an entirely new category is seen for the very first time. %but a very similar looking bird was seen in training, making it easier than the SCS.
+\paragraph{Two split Settings} We use the two splits presented by \citet{elhoseiny2017link}: (1) Super Category-Shared (SCS), also referred to as the \enquote*{easy} split; and (2) Super-Category-Exclusive (SCE), also referred to as the \enquote*{hard} split. In the SCS, for each class in the test set, at least one class in the training set belongs to the same category (categories are organized taxonomically). For example, in Figure \ref{fig:bird_example}, the Rufous Hummingbird and the Ruby-throated Hummingbird are both from the Hummingbird category. In the SCE, all classes in a category are in the same set. Namely, if a class is in the test set then other classes from the same category are also in the test set, and will never be seen during training. Intuitively, classes from the same category have high similarity in both images and texts, so while in SCS similar images have been seen during training, in the SCE a class from an entirely new category is seen for the very first time. %but a very similar looking bird was seen in training, making it easier than the SCS.
 
 \paragraph{Training Details:}
 The parameters of our model include cluster parameters. We use two clustering methods: (1) Density-based spatial clustering of applications with noise (DBSCAN) \citep{ester1996density}; (2) Hierarchical DBSCAN \citep{mcinnes2017hdbscan}. The DBSCAN algorithm takes two parameters: (1) \enquote{minimal cluster} - the number of samples in a neighborhood for a point to be considered as a core point; (2) \enquote{max distance} the maximum distance between two samples for one to be considered as in the neighborhood of the other. 
@@ -551,7 +553,7 @@ The VRS algorithm includes a sentence score threshold for the number of sentence
 
 
  % \gal{which parameters?}.
-The weights W were initialized with normalized initialization \citep{glorot2010understanding}. The cross-entropy loss function was optimized with Adam optimizer \citep{Adam}.
+The weights   $W$ were initialized with normalized initialization \citep{glorot2010understanding}. The cross-entropy loss function was optimized with Adam optimizer \citep{Adam}.
 %All variants of the ZEST model are trained using categorical cross-entropy.
 
 
@@ -563,7 +565,7 @@ The weights W were initialized with normalized initialization \citep{glorot2010u
 To evaluate our proposed VRS extraction method, we designed an oracle experiment using ground-truth visually relevant summarization. To this end, we manually annotated the CUB dataset by extracting sentences that include visually relevant descriptions of the bird subject. On average, only 11.9\% of the sentences were found to include VLR. 
 
 \paragraph{Image Captions:}
-To create visual summaries we use image captions of birds from the CUB train-set, provided by \citet{reed2016learning}. Each image in the CUB dataset has been annotated with 10 fine-grained captions. These captions describe only the visual appearance of the birds while avoiding mentioning the names of the bird species. E.g., \enquote{This bird has a long beak, a creamy breast, and body, with brown wings}. In this work, we use the first 5 captions of each image.
+To create visual summaries we use image captions of birds from the CUB train set, provided by \citet{reed2016learning}. Each image in the CUB dataset has been annotated with 10 fine-grained captions. These captions describe only the visual appearance of the birds while avoiding mentioning the names of the bird species. E.g., \enquote{This bird has a long beak, a creamy breast, and body, with brown wings}. In this work, we use the first 5 captions of each image.
 
 
 To showcase the generality of this approach, we use these captions in both in-domain (CUB) and out-of-domain (NAB) scenarios. In all cases, we avoid using captions of unseen (test) bird classes. In NAB, we effectively use captions from CUB to extract VRS for entirely-different species presented in NAB. Note that {\em only} models that include the VRS component (+VRS) employ these image captions. We report the accuracy achieved per the number of captions used in the VRS, to indicate the number of captions that are realistically needed.
@@ -743,7 +745,8 @@ We then combined strengths of ZEST$_{vanilla}$ and NNS models over the two diffe
 
 %Next we embed the similarity approach inspired by the DS model into the stochastic system. %obtaining combined strengths over both the SCE and SCS splits.
 %\yuval{I suggets to revise. IIUC, DS does not learn anything. and the similarity index was obtained from the clustering models. }
-The ZEST$_{similarity}$ model adds the similarity to the representation of the text-only if over 15\% of the texts from test-set are clustered with at least one text from train-set we concatenate the encoded cluster label to the document representation.
+The ZEST$_{similarity}$ model adds the cluster index embedding to the TF-IDF representation, only if a significant percentage of the documents from test are clustered with documents from the train set. The threshold picked over the validation set is a 15\%. 
+%similarity  to the representation of the text-only if over 15\% of the texts from test-set are clustered with at least one text from train-set we concatenate the encoded cluster label to the document representation.
 Thus, in the case of the SCE-split, no or few similarities are found, and the ZEST$_{similarity}$ preforms at the same level as the ZEST$_{vanilla}$ model. %Thus, the ZEST$_{similarity}$ functions as the ZEST$_{vanilla}$ on the SCE-split where few or no similarities clusters are found. 
 The threshold parameter was optimized on the validation set. 
 %\yuval{Describe this under the approach. Also explain how the 15\% thershold was chosen.}
@@ -756,10 +759,10 @@ The two clustering algorithms we applied find real similarities, achieving high 
 
 Interestingly though, different clustering find different sources of similarities, that are essentially {\em additive}. In Table \ref{table:similarity} we can see a comparison between different similarity enhancing methods. 
 The ZEST$_{vanilla}$+bird category method is a BOW of the bird category added to the original text embedding and then passed as before to a ZEST$_{vanilla}$ model. 
-The use of two clusters that capture different similarities performs better than the embedding of the bird category in the text representation, by an absolute improvement of up to 3.77\%. This suggests that our $_{similarity}$ method captures similarities that are beyond the bird category. %(e.g, birds that are visually similar). 
+The use of two clusters that capture different similarities performs better than the embedding of the bird category in the text representation, by an absolute improvement of up to 3.77\%. This suggests that our $ZEST_{similarity}$ method captures similarities that are beyond the bird category. %(e.g, birds that are visually similar). 
 
 Finally, 
-in Table \ref{table:GZSL} we present the results of ZEST$_{similarity}$ the GZSL setup. On both datasets and splits, the ZEST$_{similarity}$ achieves the state-of-the-art with up to 30.88\% ratio improvement.
+in Table \ref{table:GZSL} we present the results of ZEST$_{similarity}$ in the GZSL setup. On both datasets and splits, the ZEST$_{similarity}$ achieves  state-of-the-art results with up to 30.88\% ratio improvement.
 
 \paragraph{ ZEST$_{vanilla}$+VRS and ZEST$_{similarity}$+VRS }
 %The ZEST$_{vanilla}$+VS and ZEST$_{similarity}$+VS models
@@ -775,7 +778,7 @@ The HUMAN summary is an especially lean summary with only 11.9\% sentences extra
 %In addition, we see a drop in the GAZSL+HUMAN performance on the SCS-split. This is because the summarization process of the text reduces the similarity which is important in the SCS-split. However, when adding our similarity model to the GAZSL+HUMAN --- GAZSL+HUMAN+$similarity$, the performance goes up again.
 %\reut{the part about GAZSL and the paragraph after need revision, message unclear.} 
 
-To assess the quality of the VRS summarization performance we treat HUMAN summarization as the ground truth. The VRS method succeeds in removing 49.4\% of the sentences in on the CUB dataset with 96.23\% recall and 22.59\% precision. For comparison, removing 49.4\% of the sentences randomly produces a recall of 50.6\% and precision of 11.9\%.
+To assess the quality of the VRS summarization performance we treat HUMAN summarization as the ground truth. The VRS method succeeds in removing 49.4\% of the sentences in the CUB dataset with 96.23\% recall and 22.59\% precision. For comparison, removing 49.4\% of the sentences randomly produces a recall of 50.6\% and precision of 11.9\%.
 %Another comparison we made is to a state-of-the-art extraction summarization model such as Textrank \citep{mihalcea2004textrank} algorithm, which achieves a recall of 12.33\% and a precision of 12.83\%.
 
  
@@ -797,7 +800,9 @@ Finally, we experiment to assess the number of captions that are realistically n
  sentences (captions) from arbitrary birds are needed to achieve the maximum accuracy with this method.
 Testing the VRS with 5 arbitrary captions from CUB dataset on the NAB dataset with SCS-split we achieved a 39.28\% accuracy. %Thus, we need not resort to in-domain crowd-sourcing
 %Thus, the VRS method does not require the use of crowd-sourcing to produce image captions. 
-For comparison, \citet{reed2016learning} showed that his model relies on at least 512 captions \textbf{per class} to achieve the same accuracy as using all the captions available per class, during test-time.
+%For comparison, \citet{reed2016learning} showed that his model relies on at least 512 captions \textit{per class} to achieve the same accuracy as using all the captions available per class, during test-time.
+
+For comparison, \citet{reed2016learning} showed that his model needed at least 512 captions per class to achieve the maximum accuracy - i.e. had he used all the captions available.
 
 
 %\reut{is this the case for both CUB and NAB or only CUB? maybe the low number is needed only in the in-domain scenario and out of domain will need more captures?} 
@@ -810,7 +815,7 @@ For comparison, \citet{reed2016learning} showed that his model relies on at leas
 \section{Conclusion}
 \label{conclusion}
 
-This work aimed to establish a better way to represent the text to generally support the text-based ZSL task. Our two orthogonal text-processing methods lead to significant improvements across models, splits, and data-sets, and illustrate that adequate text-processing methods are essential in text-based ZSL tasks,  and are  conjectured to be essential in any vision and language-based tasks. 
+This work aimed to establish a better way to represent the text to generally support the text-based ZSL task. Our two orthogonal text-processing methods lead to significant improvements across models, splits, and datasets, and illustrate that adequate text-processing methods are essential in text-based ZSL tasks,  and are  conjectured to be essential in any vision and language-based tasks. 
 %We thus, recommend applying text-processing methods in future research which includes vision and language modalities.\reut{Not sure about the last sentence, it appears to repeat the previous one}
 
 
